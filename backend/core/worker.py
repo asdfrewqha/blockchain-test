@@ -44,7 +44,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
             text=f"Ваш опрос {poll.name} завершился, но к сожалению в нём никто не проголосовал",
         )
         return None
-    poll.options = get_options_votes(poll.options, poll.id)
+    poll.options = await get_options_votes(poll.options, poll.id)
     poll_obj = {
         "id": poll.id,
         "name": poll.name,

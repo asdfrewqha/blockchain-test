@@ -28,12 +28,12 @@ async def get_trend_poll(user: Annotated[User, Depends(check_user)]):
             continue
 
         if user.id == poll_sch.user_id:
-            poll_sch.options = get_options_votes(poll_sch.options, poll_sch.id)
+            poll_sch.options = await get_options_votes(poll_sch.options, poll_sch.id)
             result.append(poll_sch)
             continue
 
         if now > poll_sch.end_date:
-            poll_sch.options = get_options_votes(poll_sch.options, poll_sch.id)
+            poll_sch.options = await get_options_votes(poll_sch.options, poll_sch.id)
 
         if user:
             vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll_sch.id})

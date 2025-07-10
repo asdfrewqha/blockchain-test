@@ -63,7 +63,7 @@ async def prepare_poll_response(poll: Poll, user: User) -> PollSchema:
     poll_sch.is_voted = len(votes) > 0
 
     if user.id == user_id_val or now > end_date:
-        poll_sch.options = get_options_votes(poll_sch.options, poll.id)
+        poll_sch.options = await get_options_votes(poll_sch.options, poll.id)
 
     return poll_sch
 

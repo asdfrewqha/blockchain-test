@@ -27,12 +27,12 @@ async def get_poll_by_user_id(username: str, user: Annotated[User, Depends(check
         poll_sch.is_active = bool(poll.start_date < now and now < poll.end_date)
 
         if user.username == username:
-            poll_sch.options = get_options_votes(poll_sch.options, poll.id)
+            poll_sch.options = await get_options_votes(poll_sch.options, poll.id)
             result.append(poll_sch)
             continue
 
         if now > poll.end_date:
-            poll_sch.options = get_options_votes(poll_sch.options, poll.id)
+            poll_sch.options = await get_options_votes(poll_sch.options, poll.id)
 
         if user and not user.id == poll.user_id:
             vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})
