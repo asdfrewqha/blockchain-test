@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
+    JSON,
     BigInteger,
     Boolean,
     DateTime,
@@ -56,7 +57,7 @@ class Poll(Base):
     user_username: Mapped[str] = mapped_column(String, nullable=False)
     votes_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     comments_count: Mapped[int] = mapped_column(Integer, default=0)
-    options: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    options: Mapped[list] = mapped_column(JSON, nullable=False)
     start_date: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     end_date: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     private: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

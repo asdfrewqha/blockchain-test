@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import Annotated
 from uuid import UUID
 
@@ -6,10 +5,10 @@ from fastapi import APIRouter, Depends
 
 from backend.core.dependencies import badresponse, check_user, okresp
 from backend.models.db_adapter import adapter
-from backend.models.db_tables import Poll, User, Vote
-from backend.routes.polls.tasks import enqueue_notify_author, enqueue_notify_user
+from backend.models.db_tables import Poll, User
 
 router = APIRouter()
+
 
 @router.delete("/delete-poll/{poll_id}")
 async def delete_poll(poll_id: UUID, user: Annotated[User, Depends(check_user)]):
@@ -19,4 +18,4 @@ async def delete_poll(poll_id: UUID, user: Annotated[User, Depends(check_user)])
     if user.id != poll.user_id:
         return badresponse("You are not the owner of this poll", 403)
     await adapter.delete(Poll, poll_id)
-    return okresp(200, "Poll deleted")
+    return okresp(204, "Poll deleted")

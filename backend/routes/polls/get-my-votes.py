@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from backend.core.dependencies import badresponse, check_user
+from backend.core.dependencies import badresponse, check_user, get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import User
 from backend.models.schemas import PollSchema
@@ -24,7 +24,7 @@ async def get_my_votes(user: Annotated[User, Depends(check_user)]):
         now = datetime.now(timezone.utc)
         if poll.end_date > now and poll.start_date < now:
             poll_sch.is_active = True
-        if poll.end_date > now:
-            poll_sch.options = list(poll_sch.options.keys())
+        if poll.end_date < now:
+            poll_sch.options = get_options_votes(poll_sch.options, poll.id)
         polls_sch.append(poll_sch)
     return polls_sch

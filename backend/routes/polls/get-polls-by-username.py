@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from backend.core.dependencies import badresponse, check_user
+from backend.core.dependencies import badresponse, check_user, get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import Poll, User, Vote
 from backend.models.schemas import PollSchema
@@ -27,11 +27,12 @@ async def get_poll_by_user_id(username: str, user: Annotated[User, Depends(check
         poll_sch.is_active = bool(poll.start_date < now and now < poll.end_date)
 
         if user.username == username:
+            poll_sch.options = get_options_votes(poll_sch.options, poll.id)
             result.append(poll_sch)
             continue
 
-        if poll_sch.options and now < poll.end_date:
-            poll_sch.options = list(poll_sch.options.keys())
+        if now > poll.end_date:
+            poll_sch.options = get_options_votes(poll_sch.options, poll.id)
 
         if user and not user.id == poll.user_id:
             vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})

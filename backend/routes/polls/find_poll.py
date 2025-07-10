@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from backend.core.dependencies import badresponse, check_user
+from backend.core.dependencies import badresponse, check_user, get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import Poll, User, Vote
 from backend.models.schemas import PollSchema, SearchPollSchema
@@ -66,9 +66,8 @@ async def prepare_poll_response(poll: Poll, user: User) -> PollSchema:
     votes = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll_id})
     poll_sch.is_voted = len(votes) > 0
 
-    # Если пользователь не автор и опрос еще активен
-    if user.id != user_id_val and now < end_date:
-        poll_sch.options = list(options.keys()) if options else []
+    if user.id == user_id_val or now > end_date:
+        poll_sch.options = get_options_votes(poll_sch.options, poll.id)
 
     return poll_sch
 

@@ -14,6 +14,7 @@ from backend.core.config import (
     REDIS_PASSWORD,
     REDIS_PORT,
 )
+from backend.core.dependencies import get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import Poll, User, Vote
 from backend.models.poll_analyzer import PollVisualizer
@@ -43,6 +44,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
             text=f"Ваш опрос {poll.name} завершился, но к сожалению в нём никто не проголосовал",
         )
         return None
+    poll.options = get_options_votes(poll.options, poll.id)
     poll_obj = {
         "id": poll.id,
         "name": poll.name,
