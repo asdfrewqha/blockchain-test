@@ -157,17 +157,17 @@ class PollVisualizer:
         return 1 - 2 * np.sum(cum_votes) / (n * cum_votes[-1]) + 1 / n
 
 
-# Пример данных опроса
-poll_example = {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "name": "Лучший язык программирования 2023",
-    "votes_count": 150,
-    "user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "user_username": "tech_guru",
-    "description": "Голосование за самый перспективный язык программирования в 2023 году",
-    "options": {"Python": 65, "JavaScript": 45, "Rust": 25, "Go": 15},
-}
+# # Пример данных опроса
+# poll_example = {
+#     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+#     "name": "Лучший язык программирования 2023",
+#     "votes_count": 150,
+#     "user_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+#     "user_username": "tech_guru",
+#     "description": "Голосование за самый перспективный язык программирования в 2023 году",
+#     "options": {"Python": 65, "JavaScript": 45, "Rust": 25, "Go": 15},
+# }
 
-visualizer = PollVisualizer(poll_example)
-chart_path = visualizer.generate_visual_report()
-print(f"График сохранен по пути: {chart_path}")
+# visualizer = PollVisualizer(poll_example)
+# chart_path = visualizer.generate_visual_report()
+# print(f"График сохранен по пути: {chart_path}")
