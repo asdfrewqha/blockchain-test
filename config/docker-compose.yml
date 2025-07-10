@@ -75,7 +75,6 @@ services:
       - --wallet.accounts=${REACT_APP_OWNER_PRIVATE_KEY},100000000000000000000
       - --chain.chainId=1337
       - --logging.debug=true
-      - --http.corsdomain="https://vote.vickz.ru"
 
   blockchain:
     image: asdfrewqha/blockchain_blockchain:latest
