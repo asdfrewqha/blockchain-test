@@ -1,8 +1,10 @@
 import logging
+from uuid import UUID
 
 from fastapi import Security
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPBearer
+from httpx import AsyncClient
 
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import User
@@ -12,6 +14,14 @@ Bear = HTTPBearer(auto_error=False)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+async def get_options_votes(options: list, poll_id: UUID) -> dict:
+    async with AsyncClient() as client:
+        params = {"options": options, "topic_id": poll_id}
+        response = await client.get("http://blockchain:2000/votes", params=params)
+        data = response.json()
+    return dict(data)
 
 
 async def check_user(access_token: str = Security(Bear)):

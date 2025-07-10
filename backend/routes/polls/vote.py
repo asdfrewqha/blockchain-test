@@ -36,10 +36,8 @@ async def vote(
         return badresponse("You have already voted", 409)
     if option not in poll.options:
         return badresponse("Invalid option")
-    options = poll.options
     votes = poll.votes_count
-    options[option] = options[option] + 1
-    await adapter.update_by_id(Poll, poll_id, {"votes_count": votes + 1, "options": options})
+    await adapter.update_by_id(Poll, poll_id, {"votes_count": votes + 1})
     if notification:
         delay = (poll.end_date - datetime.now(timezone.utc)).total_seconds()
         await enqueue_notify_user(user.id, poll_id, delay)

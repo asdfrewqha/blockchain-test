@@ -23,8 +23,6 @@ async def create_poll(user: Annotated[User, Depends(check_user)], poll: NewPoll)
         return badresponse("Too many options")
     elif len(poll.options) != len(set(poll.options)):
         return badresponse("Duplicating options")
-    for vote in poll.options:
-        options[vote] = 0
     hashtags = [i.replace("#", "") for i in poll.description.split() if i.startswith("#")]
     new_poll_obj = {
         "name": poll.name,
