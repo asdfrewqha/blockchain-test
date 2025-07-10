@@ -1,8 +1,8 @@
 **/__pycahce__/*.pyc
 /config/.env
 .venv/
+.env
 *.py[cod]
 __pycache__/
-.env
 reports
 alembic.ini

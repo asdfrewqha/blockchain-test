@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-dotenv
+web3
+py-solc-x
+eth-account
