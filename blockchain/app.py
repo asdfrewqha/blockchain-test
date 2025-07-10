@@ -1,17 +1,17 @@
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from web3 import Web3
 import json
 import os
-import uvicorn
 import time
+
+import uvicorn
+from deploy_script import deploy_contracts
 from dotenv import load_dotenv
 from eth_account.messages import encode_typed_data
-from web3.middleware import ExtraDataToPOAMiddleware
-from deploy_script import deploy_contracts
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import BaseModel
+from web3 import Web3
+from web3.middleware import ExtraDataToPOAMiddleware
 
 app = FastAPI()
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,7 +27,6 @@ app.add_middleware(
 )
 
 
-
 class ForwardRequest(BaseModel):
     from_ad: str
     to: str
@@ -36,9 +35,11 @@ class ForwardRequest(BaseModel):
     nonce: int
     data: str
 
+
 class RelayPayload(BaseModel):
     request: ForwardRequest
     signature: str
+
 
 @app.get("/")
 async def redirect():
@@ -97,20 +98,20 @@ def relay_transaction(payload: RelayPayload):
     if signer.lower() != request["from"].lower():
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    tx = forwarder.functions.execute(
-        request,
-        payload.signature
-    ).build_transaction({
-        "from": RELAY_ADDRESS,
-        "nonce": web3.eth.get_transaction_count(RELAY_ADDRESS),
-        "gas": request["gas"] + 100_000,
-        "gasPrice": web3.eth.gas_price,
-    })
+    tx = forwarder.functions.execute(request, payload.signature).build_transaction(
+        {
+            "from": RELAY_ADDRESS,
+            "nonce": web3.eth.get_transaction_count(RELAY_ADDRESS),
+            "gas": request["gas"] + 100_000,
+            "gasPrice": web3.eth.gas_price,
+        }
+    )
 
     signed_tx = web3.eth.account.sign_transaction(tx, private_key=RELAY_PRIVATE_KEY)
     tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
     print(f"Transaction sent: {tx_hash.hex()}")
     return {"tx_hash": tx_hash.hex()}
+
 
 @app.get("/votes")
 def get_votes(options: list[str] = Query(), topic_id: str = Query()):
@@ -119,7 +120,7 @@ def get_votes(options: list[str] = Query(), topic_id: str = Query()):
     GANACHE_URL = os.getenv("REACT_APP_GANACHE_URL")
     print(VOTING_CONTRACT)
     web3 = Web3(Web3.HTTPProvider(GANACHE_URL))
-    with open(os.path.join(os.path.dirname(__file__), 'abi.json')) as f:
+    with open(os.path.join(os.path.dirname(__file__), "abi.json")) as f:
         abi = json.load(f)
     for option in options:
         voting_contract = web3.eth.contract(address=VOTING_CONTRACT, abi=abi)
@@ -127,16 +128,15 @@ def get_votes(options: list[str] = Query(), topic_id: str = Query()):
         res[option] = votes
     return JSONResponse(content=res)
 
+
 @app.get("/adresses")
 def send_adresses():
     VOTING_ADRESS = os.getenv("REACT_APP_CONTRACT_ADDRESS")
     FORWARDER_ADRESS = os.getenv("REACT_APP_FORWARDER_CONTRACT_ADDRESS")
     return JSONResponse(
-        content={
-            "VOTING_ADRESS": VOTING_ADRESS,
-            "FORWARDER_ADRESS": FORWARDER_ADRESS
-        }
+        content={"VOTING_ADRESS": VOTING_ADRESS, "FORWARDER_ADRESS": FORWARDER_ADRESS}
     )
+
 
 if __name__ == "__main__":
     time.sleep(10)
@@ -145,6 +145,10 @@ if __name__ == "__main__":
         base_dir = os.path.dirname(os.path.abspath(__file__))
         env_path = "./.env"
         load_dotenv(env_path)
-        uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("REACT_APP_BACKEND_PORT")), reload=False)
+        uvicorn.run(
+            app, host="0.0.0.0", port=int(os.getenv("REACT_APP_BACKEND_PORT")), reload=False
+        )
     else:
-        uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("REACT_APP_BACKEND_PORT")), reload=False)
+        uvicorn.run(
+            app, host="0.0.0.0", port=int(os.getenv("REACT_APP_BACKEND_PORT")), reload=False
+        )
