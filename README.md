@@ -66,7 +66,7 @@
 #### [Зарегистрироваться](https://vote.vickz.ru/#/signup)
 > Уже сейчас реализована регистрация через мессенджер Телеграм - [@SecureVoteBlockchainBot](t.me/SecureVoteBlockchainBot)
 > Чтобы успешно зарегистрироваться на нашем сайте нужно:
-> 1. Перейти на [https://vickz.ru/#/signup](https://vote.vickz.ru/#/signup)
+> 1. Перейти на [https://vote.vickz.ru/#/signup](https://vote.vickz.ru/#/signup)
 > 2. Введите свое имя
 > 3. Логин
 > 4. Пароль
