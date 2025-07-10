@@ -11,7 +11,6 @@ from backend.routes.polls.tasks import enqueue_notify_author, enqueue_notify_use
 
 router = APIRouter()
 
-
 @router.post("/end-poll/{poll_id}")
 async def end_vote(poll_id: UUID, user: Annotated[User, Depends(check_user)]):
     if not user:
