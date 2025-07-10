@@ -29,9 +29,8 @@ async def check_vote_status(poll: Poll, vote_status: Optional[str], user_id: UUI
     if vote_status in ["all", None]:
         return True
 
-    # Проверяем, голосовал ли пользователь в этом опросе
     votes = await adapter.get_by_values(Vote, {"user_id": user_id, "poll_id": poll.id})
-    has_voted = len(votes) > 0  # Исправлено: проверяем наличие голосов
+    has_voted = len(votes) > 0
 
     if vote_status == "voted" and has_voted:
         return True
@@ -45,7 +44,6 @@ async def prepare_poll_response(poll: Poll, user: User) -> PollSchema:
     now = datetime.now(timezone.utc)
     poll_sch = PollSchema.model_validate(poll)
 
-    # Получаем данные опроса
     if isinstance(poll, dict):
         poll_id = poll["id"]
         start_date = poll["start_date"]
@@ -59,10 +57,8 @@ async def prepare_poll_response(poll: Poll, user: User) -> PollSchema:
         user_id_val = poll.user_id
         options = poll.options
 
-    # Устанавливаем флаги
     poll_sch.is_active = start_date <= now <= end_date
 
-    # Проверяем, голосовал ли пользователь
     votes = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll_id})
     poll_sch.is_voted = len(votes) > 0
 
@@ -77,7 +73,6 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
     if not user:
         return badresponse("Unauthorized", 401)
 
-    # Валидация параметров
     if search_params.voting_status not in ["all", "voted", "not_voted", None]:
         return badresponse("Invalid voting status", 400)
     if search_params.sort_by not in ["popularity_asc", "popularity_desc", None]:
@@ -85,7 +80,6 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
     if search_params.poll_status not in ["all", "open", "closed", None]:
         return badresponse("Invalid poll status", 400)
 
-    # Поиск по имени если задан
     if search_params.poll_name:
         polls = await adapter.find_similar_value(
             Poll, "name", search_params.poll_name, similarity_threshold=40
@@ -93,10 +87,8 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
     else:
         polls = await adapter.get_all(Poll)
 
-    # Применяем фильтры
     filtered_polls = []
     for poll in polls:
-        # Получаем данные опроса
         if isinstance(poll, dict):
             is_private = poll["private"]
             user_id_val = poll["user_id"]
@@ -104,19 +96,18 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
             is_private = poll.private
             user_id_val = poll.user_id
 
-        # Проверка приватности: пропускаем только приватные опросы не принадлежащие пользователю
-        if is_private and user_id_val != user.id:
+        if is_private:
             continue
 
-        # Проверка статуса голосования
+        # if is_private and user_id_val != user.id:
+        #     continue
+
         if not await check_vote_status(poll, search_params.voting_status, user.id):
             continue
 
-        # Проверка статуса опроса
         if not await check_poll_status(poll, search_params.poll_status):
             continue
 
-        # Проверка тегов
         if search_params.tags:
             poll_tags = poll["hashtags"] if isinstance(poll, dict) else poll.hashtags
             poll_tags = poll_tags or []
@@ -125,7 +116,6 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
 
         filtered_polls.append(poll)
 
-    # Применяем сортировку
     if filtered_polls:
         if search_params.sort_by == "popularity_asc":
             if isinstance(filtered_polls[0], dict):
@@ -140,6 +130,5 @@ async def search_polls(user: Annotated[User, Depends(check_user)], search_params
     else:
         return badresponse("Polls not found", 404)
 
-    # Подготавливаем ответ
     result = [await prepare_poll_response(poll, user) for poll in filtered_polls]
     return result
