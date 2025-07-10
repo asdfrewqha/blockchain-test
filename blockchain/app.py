@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from eth_account.messages import encode_typed_data
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from web3 import Web3
 from web3.middleware import ExtraDataToPOAMiddleware
@@ -28,7 +28,6 @@ app.add_middleware(
 
 print("!!!")
 
-
 class ForwardRequest(BaseModel):
     from_ad: str
     to: str
@@ -42,6 +41,14 @@ class RelayPayload(BaseModel):
     request: ForwardRequest
     signature: str
 
+# <<<<<<< main
+# =======
+
+# @app.get("/")
+# async def redirect():
+#     return RedirectResponse("/docs")
+
+# >>>>>>> backend
 
 @app.post("/relay")
 def relay_transaction(payload: RelayPayload):

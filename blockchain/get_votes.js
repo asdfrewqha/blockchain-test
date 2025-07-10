@@ -24,10 +24,10 @@ async function getVotes(topicId, option) {
 
         // Получаем голоса
         const votes = await votingContract.getVotes(topicId, option);
-        
+
         console.log(`Голосов за опцию "${option}" в топике "${topicId}":`, votes.toString());
         return votes;
-        
+
     } catch (error) {
         console.error("Ошибка при получении голосов:", error);
         throw error;
@@ -38,15 +38,15 @@ async function getVotes(topicId, option) {
 async function getVotesViaBackend(topicId, option) {
     try {
         const response = await fetch(`${backendUrl}:${backendPort}/votes?topic_id=${topicId}&option=${option}`);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log(`Голосов через бэкенд:`, data.votes);
         return data.votes;
-        
+
     } catch (error) {
         console.error("Ошибка при запросе к бэкенду:", error);
         throw error;
