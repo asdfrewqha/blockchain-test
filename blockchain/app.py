@@ -28,7 +28,6 @@ app.add_middleware(
 
 print("!!!")
 
-
 class ForwardRequest(BaseModel):
     from_ad: str
     to: str
@@ -41,7 +40,6 @@ class ForwardRequest(BaseModel):
 class RelayPayload(BaseModel):
     request: ForwardRequest
     signature: str
-
 
 @app.post("/relay")
 def relay_transaction(payload: RelayPayload):

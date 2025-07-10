@@ -16,7 +16,7 @@ async function Vote(topicId, option) {
         }
 
         async function safeStringify(obj) {
-            return JSON.stringify(obj, (key, value) => 
+            return JSON.stringify(obj, (key, value) =>
                 typeof value === 'bigint' ? value.toString() : value
             );
         }
@@ -50,7 +50,7 @@ async function Vote(topicId, option) {
 
         const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_NODE_URL);
         const nonce = await getNonceFromForwarder(forwarderAddress, clientAddress);
-        
+
         const request_to_sign = {
             from: clientAddress,
             to: contractAddress,
@@ -121,7 +121,7 @@ async function Vote(topicId, option) {
     ];
     const iface = new ethers.Interface(ABI);
     const data = iface.encodeFunctionData("vote", [topicId, option]);
-    
+
     try {
         const result = await sendMetaTx(data);
         console.log("Vote transaction completed:", result);
