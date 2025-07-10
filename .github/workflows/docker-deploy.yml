@@ -1,0 +1,114 @@
+name: Build and Deploy via Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Telegram notification (start)
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
+        run: |
+          MESSAGE="Deploy starting:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR"
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
+              -d text="$MESSAGE"
+          done
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/blockchain:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/blockchain:latest
+          cache-to: type=inline
+
+      - name: Archive docker-compose.yml and nginx.conf
+        run: |
+          tar -czf deploy.tar.gz -C config docker-compose.yml nginx.conf
+
+      - name: Copy archive to server
+        uses: appleboy/scp-action@v0.1.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2084
+          source: deploy.tar.gz
+          target: /root/fastapi/
+
+      - name: Extract and clean up on server
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2084
+          script: |
+            cd /root/fastapi
+            tar -xzf deploy.tar.gz
+            rm deploy.tar.gz
+
+      - name: Deploy on server via SSH
+        uses: appleboy/ssh-action@v0.1.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2084
+          script: |
+            set -e
+            cd /root/fastapi
+
+            docker container rm -f fastapi-container || true
+            docker container rm -f nginx-container || true
+
+            docker pull asdfrewqha/blockchain:latest
+
+            docker compose up -d --build --remove-orphans
+
+      - name: Telegram notification (success)
+        if: success()
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
+        run: |
+          MESSAGE="Deployment finished successfully:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR"
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
+              -d text="$MESSAGE"
+          done
+
+      - name: Telegram notification (fail)
+        if: failure()
+        env:
+          BOT_TOKEN: "${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          USER_IDS: "${{ secrets.TELEGRAM_CHAT_ID }}"
+        run: |
+          MESSAGE="Deployment failure:%0ARepo: $GITHUB_REPOSITORY%0ABranch: $GITHUB_REF_NAME%0AAuthor: $GITHUB_ACTOR%0ACheck workflow logs."
+          for USER_ID in $USER_IDS; do
+            curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              -d chat_id="$USER_ID" \
+              -d text="$MESSAGE"
+          done
