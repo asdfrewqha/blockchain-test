@@ -22,7 +22,7 @@ async def get_poll_by_id(poll_id: uuid.UUID, user: Annotated[User, Depends(check
     poll_sch = PollSchema.model_validate(poll)
     now = datetime.now(timezone.utc)
     if poll.user_id == user.id or poll.end_date < now:
-        poll.options = await get_options_votes(poll.options, poll.id)
+        poll_sch.options = await get_options_votes(poll_sch.options, poll.id)
     if poll.start_date < now and poll.end_date > now:
         poll_sch.is_active = True
     if not user.id == poll.user_id:
