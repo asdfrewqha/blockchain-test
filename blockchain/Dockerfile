@@ -31,4 +31,4 @@ RUN python3 -m solcx.install v0.8.0
 
 EXPOSE 2000
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "2000"]
+CMD ["python", "app.py"]
