@@ -35,7 +35,8 @@ async def get_poll_by_user_id(username: str, user: Annotated[User, Depends(check
 
         if user and not user.id == poll.user_id:
             vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})
-            if vote:
+            is_private = poll.private   
+            if vote and not is_private:
                 poll_sch.is_voted = True
                 result.append(poll_sch)
                 continue
