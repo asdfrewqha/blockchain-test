@@ -22,6 +22,8 @@ async def send_premium_stats(user: Annotated[User, Depends(check_user)], poll_id
         return badresponse("Poll not found", 404)
     if poll.user_id != user.id:
         return badresponse("You are not the owner of this poll", 403)
+    if user.role != "PRO":
+        return badresponse("You need to be a PRO user to access this feature", 403)
     poll = PollSchema.model_validate(poll).model_dump()
     pdf_path = PremiumPDFReportGenerator(poll).generate_pdf_report()
 

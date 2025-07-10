@@ -15,7 +15,7 @@ contract VotingManager is ERC2771Context {
         require(!hasVoted[topicId][voter], "Already voted for this topic");
 
         votes[topicId][option]++;
-        emit Voted(voter, topicId, option); 
+        emit Voted(voter, topicId, option);
         hasVoted[topicId][voter] = true;
     }
 

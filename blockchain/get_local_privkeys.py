@@ -1,6 +1,5 @@
-from bip_utils import Bip39SeedGenerator, Bip44, Bip44Coins, Bip44Changes
+from bip_utils import Bip39SeedGenerator, Bip44, Bip44Changes, Bip44Coins
 from eth_account import Account
-
 
 MNEMONIC = "test test test test test test test test test test test junk"
 
