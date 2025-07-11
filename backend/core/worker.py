@@ -34,7 +34,8 @@ async def shutdown(ctx):
 async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
     await asyncio.sleep(delay)
     poll = await adapter.get_by_id(Poll, poll_id)
-    user = await adapter.get_by_value(User, "telegram_id", chat_id)[0]
+    user = await adapter.get_by_value(User, "telegram_id", chat_id)
+    user = user[0]
     if not user.notifications:
         return None
     if poll.is_notified:
@@ -82,7 +83,8 @@ async def notify_user(ctx, user_id: UUID, poll_id: UUID, delay: float):
     await asyncio.sleep(delay)
     poll = await adapter.get_by_id(Poll, poll_id)
     user = await adapter.get_by_id(User, user_id)
-    vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})[0]
+    vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})
+    vote = vote[0]
     if vote.is_notified:
         return None
     await bot.send_message(

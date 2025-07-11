@@ -112,7 +112,7 @@ async def handle_poll_name(message: types.Message, state: FSMContext):
                     pdf_path = PremiumPDFReportGenerator(poll_dict).generate_pdf_report()
                     file = FSInputFile(pdf_path)
                     await message.answer_document(
-                        document=file, caption=f"Статистика вашего опроса {poll_name}:"
+                        document=file, caption=f'Статистика вашего опроса "{poll_name}":'
                     )
                     os.remove(pdf_path)
                     sent = True
@@ -121,7 +121,7 @@ async def handle_poll_name(message: types.Message, state: FSMContext):
                     graph = visualizer.generate_visual_report()
                     file = FSInputFile(graph)
                     await message.answer_photo(
-                        photo=file, caption=f"Статистика вашего опроса {poll_name}:"
+                        photo=file, caption=f'Статистика вашего опроса "{poll_name}":'
                     )
                     os.remove(graph)
                     sent = True
