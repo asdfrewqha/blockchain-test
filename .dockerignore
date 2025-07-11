@@ -1,1 +1,9 @@
 blockchain/*
+.flake8
+.pre-commit-config.yaml
+migration/*
+frontend/*
+config/*
+.github/*
+README.md
+Readme-photos/*
