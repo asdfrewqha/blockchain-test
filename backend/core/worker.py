@@ -42,7 +42,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
     if poll.votes_count == 0:
         await bot.send_message(
             chat_id=chat_id,
-            text=f"Ваш опрос {poll.name} завершился, но к сожалению в нём никто не проголосовал",
+            text=f'Ваш опрос "{poll.name}" завершился, но к сожалению в нём никто не проголосовал',
         )
         return None
     poll.options = await get_options_votes(poll.options, poll.id)
@@ -61,7 +61,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
         await bot.send_document(
             chat_id=chat_id,
             photo=file,
-            caption=f"Ваш опрос {poll.name} завершён! Вот его статистика:",
+            caption=f'Ваш опрос "{poll.name}" завершён! Вот его статистика:',
         )
         os.remove(pdf_path)
     else:
@@ -71,7 +71,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
         await bot.send_photo(
             chat_id=chat_id,
             photo=file,
-            caption=f"Ваш опрос {poll.name} завершён! Вот его статистика:",
+            caption=f'Ваш опрос "{poll.name}" завершён! Вот его статистика:',
         )
         os.remove(graph)
     await adapter.update_by_id(Poll, poll_id, {"is_notified": True})
