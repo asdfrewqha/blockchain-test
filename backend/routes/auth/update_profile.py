@@ -46,26 +46,27 @@ async def upd_profile(user: Annotated[User, Depends(check_user)], update: Update
         updated_data["username"] = update.username
         if not is_valid(updated_data["username"]):
             return badresponse("Invalid username", 400)
-        existing_username = await adapter.get_by_value(User, "username", update.username)
-        if not existing_username:
-            updated_data["username"] = update.username
-            if user.avatar_url != DEFAULT_AVATAR_URL:
-                old_pfp = f"{user.username}/avatar_{uid}.png"
-                new_pfp = f"{update.username}/avatar_{uid}.png"
-                try:
-                    await s3.copy_file(old_pfp, new_pfp)
-                    await s3.delete_file(old_pfp)
-                    public_url = s3.get_url(new_pfp)
-                    await adapter.update_by_id(User, uid, {"avatar_url": public_url})
-                except Exception as e:
-                    logger.error(f"Ошибка при перемещении аватара: {e}")
-            await adapter.update_by_value(
-                Poll,
-                {"user_username": user.username},
-                {"user_username": update.username},
-            )
-        else:
-            return badresponse("This username is already taken", 409)
+        if user.username != update.username:
+            existing_username = await adapter.get_by_value(User, "username", update.username)
+            if not existing_username:
+                updated_data["username"] = update.username
+                if user.avatar_url != DEFAULT_AVATAR_URL:
+                    old_pfp = f"{user.username}/avatar_{uid}.png"
+                    new_pfp = f"{update.username}/avatar_{uid}.png"
+                    try:
+                        await s3.copy_file(old_pfp, new_pfp)
+                        await s3.delete_file(old_pfp)
+                        public_url = s3.get_url(new_pfp)
+                        await adapter.update_by_id(User, uid, {"avatar_url": public_url})
+                    except Exception as e:
+                        logger.error(f"Ошибка при перемещении аватара: {e}")
+                await adapter.update_by_value(
+                    Poll,
+                    {"user_username": user.username},
+                    {"user_username": update.username},
+                )
+            else:
+                return badresponse("This username is already taken", 409)
 
     if update.description:
         updated_data["description"] = update.description
