@@ -92,7 +92,6 @@ jobs:
             docker container rm -f fastapi-container || true
             docker container rm -f nginx-container || true
             docker container rm -f blockchain-container || true
-            docker container rm -f ganache-container || true
 
             docker pull asdfrewqha/blockchain:latest
             docker pull asdfrewqha/blockchain_blockchain:latest
