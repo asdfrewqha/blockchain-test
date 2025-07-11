@@ -60,7 +60,7 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
         file = FSInputFile(pdf_path)
         await bot.send_document(
             chat_id=chat_id,
-            photo=file,
+            document=file,
             caption=f'Ваш опрос "{poll.name}" завершён! Вот его статистика:',
         )
         os.remove(pdf_path)
