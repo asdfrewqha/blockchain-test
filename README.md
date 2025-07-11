@@ -70,13 +70,13 @@
 
 # Регистрация
 #### [Зарегистрироваться](https://vote.vickz.ru/#/signup)
-> Уже сейчас реализована регистрация через мессенджер Телеграм - [@SecureVoteBlockchainBot](t.me/SecureVoteBlockchainBot)
+> Уже сейчас реализована регистрация через мессенджер Телеграм - [@SecureVoteBlockchainBot](https://t.me/SecureVoteBlockchainBot)
 > Чтобы успешно зарегистрироваться на нашем сайте нужно:
 > 1. Перейти на [https://vote.vickz.ru/#/signup](https://vote.vickz.ru/#/signup)
 > 2. Введите свое имя
 > 3. Логин
 > 4. Пароль
-> 5. После перейти в нашего [бота](t.me/SecureVoteBlockchainBot) и прописать `/start`
+> 5. После перейти в нашего [бота](https://t.me/SecureVoteBlockchainBot) и прописать `/start`
 <img width="60%" src="https://github.com/asdfrewqha/blockchain-test/blob/main/Readme-photos/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-07-10%20%D0%B2%2017.42.24.png"></img>
 > 6. Вы получите код, его надо вставить в окно на сайте
 <img width="60%" src="https://github.com/asdfrewqha/blockchain-test/blob/main/Readme-photos/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202025-07-10%20%D0%B2%2014.09.34.jpg"></img>
