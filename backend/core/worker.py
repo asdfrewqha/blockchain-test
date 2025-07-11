@@ -17,6 +17,7 @@ from backend.core.config import (
 from backend.core.dependencies import get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import Poll, User, Vote
+from backend.models.pdf_reports import PremiumPDFReportGenerator
 from backend.models.poll_analyzer import PollVisualizer
 
 logger = logging.getLogger(__name__)
@@ -54,13 +55,25 @@ async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
         "description": poll.description,
         "options": poll.options,
     }
-    visualizer = PollVisualizer(poll_obj)
-    graph = visualizer.generate_visual_report()
-    file = FSInputFile(graph)
-    await bot.send_photo(
-        chat_id=chat_id, photo=file, caption=f"Ваш опрос {poll.name} завершён! Вот его статистика:"
-    )
-    os.remove(graph)
+    if user.role == "PRO":
+        pdf_path = PremiumPDFReportGenerator(poll_obj).generate_pdf_report()
+        file = FSInputFile(pdf_path)
+        await bot.send_document(
+            chat_id=chat_id,
+            photo=file,
+            caption=f"Ваш опрос {poll.name} завершён! Вот его статистика:",
+        )
+        os.remove(pdf_path)
+    else:
+        visualizer = PollVisualizer(poll_obj)
+        graph = visualizer.generate_visual_report()
+        file = FSInputFile(graph)
+        await bot.send_photo(
+            chat_id=chat_id,
+            photo=file,
+            caption=f"Ваш опрос {poll.name} завершён! Вот его статистика:",
+        )
+        os.remove(graph)
     await adapter.update_by_id(Poll, poll_id, {"is_notified": True})
     return None
 

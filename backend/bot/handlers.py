@@ -9,8 +9,10 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import FSInputFile
 
 from backend.bot.keyboards import main_keyboard
+from backend.core.dependencies import get_options_votes
 from backend.models.db_adapter import adapter
 from backend.models.db_tables import Poll, User
+from backend.models.pdf_reports import PremiumPDFReportGenerator
 from backend.models.poll_analyzer import PollVisualizer
 from backend.models.redis_adapter import redis_adapter
 
@@ -95,6 +97,8 @@ async def handle_poll_name(message: types.Message, state: FSMContext):
                     await message.answer(
                         "В вашем голосовании никто не голосовал, вывести статистику невозможно"
                     )
+                    return None
+                poll["options"] = await get_options_votes(poll["options"], poll["id"])
                 poll_dict = {
                     "id": str(poll["id"]),
                     "name": poll["name"],
@@ -104,14 +108,23 @@ async def handle_poll_name(message: types.Message, state: FSMContext):
                     "description": poll["description"],
                     "options": poll["options"],
                 }
-                visualizer = PollVisualizer(poll_dict)
-                graph = visualizer.generate_visual_report()
-                file = FSInputFile(graph)
-                await message.answer_photo(
-                    photo=file, caption=f"Статистика вашего опроса {poll_name}:"
-                )
-                os.remove(graph)
-                sent = True
+                if user.role == "PRO":
+                    pdf_path = PremiumPDFReportGenerator(poll_dict).generate_pdf_report()
+                    file = FSInputFile(pdf_path)
+                    await message.answer_document(
+                        photo=file, caption=f"Статистика вашего опроса {poll_name}:"
+                    )
+                    os.remove(pdf_path)
+                    sent = True
+                else:
+                    visualizer = PollVisualizer(poll_dict)
+                    graph = visualizer.generate_visual_report()
+                    file = FSInputFile(graph)
+                    await message.answer_photo(
+                        photo=file, caption=f"Статистика вашего опроса {poll_name}:"
+                    )
+                    os.remove(graph)
+                    sent = True
         if sent:
             return None
         else:

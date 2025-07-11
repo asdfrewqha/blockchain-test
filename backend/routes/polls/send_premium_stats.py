@@ -28,7 +28,6 @@ async def send_premium_stats(user: Annotated[User, Depends(check_user)], poll_id
     poll = PollSchema.model_validate(poll).model_dump()
     pdf_path = PremiumPDFReportGenerator(poll).generate_pdf_report()
 
-    # Добавьте filename для красивого имени файла при скачивании
     return FileResponse(
         pdf_path, media_type="application/pdf", filename=f"poll_report_{poll_id}.pdf"
     )
