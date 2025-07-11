@@ -16,7 +16,6 @@ router = APIRouter()
 async def create_poll(user: Annotated[User, Depends(check_user)], poll: NewPoll):
     if not user:
         return badresponse("Unauthorized", 401)
-    options = {}
     if len(poll.options) < 2:
         return badresponse("Too few options")
     elif len(poll.options) > 10:
@@ -29,7 +28,7 @@ async def create_poll(user: Annotated[User, Depends(check_user)], poll: NewPoll)
         "description": poll.description,
         "user_id": user.id,
         "user_username": user.username,
-        "options": options,
+        "options": poll.options,
         "start_date": poll.start_date,
         "end_date": poll.end_date,
         "private": poll.private,
