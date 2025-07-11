@@ -3,11 +3,12 @@ import Sidebar from './components/Sidebar';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiShare2 } from 'react-icons/fi';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { FiArrowLeft, FiShare2, FiTrash } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import apiRequest from './components/Requests';
 import './styles/pollviewcreator.css';
+import './styles/pollviewpublic.css'; // подключаем стили для комментариев
 
 const PollViewCreator = () => {
   const navigate = useNavigate();
@@ -16,6 +17,11 @@ const PollViewCreator = () => {
   const [chartType, setChartType] = useState('pie');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Состояния для комментариев
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -52,6 +58,53 @@ const PollViewCreator = () => {
 
     fetchPoll();
   }, [poll_id, navigate]);
+
+  // Получение комментариев
+  const fetchComments = async () => {
+    try {
+      const res = await apiRequest({
+        url: `https://api.vote.vickz.ru/api/v2/get-comments/${poll_id}`,
+        method: 'GET',
+        auth: true
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch comments');
+
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Получаем комментарии при загрузке опроса
+  useEffect(() => {
+    if (pollData) fetchComments();
+  }, [pollData]);
+
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    setCommentLoading(true);
+    try {
+      const res = await apiRequest({
+        url: `https://api.vote.vickz.ru/api/v2/add-comment/${poll_id}`,
+        method: 'POST',
+        body: commentText,
+        auth: true
+      });
+
+      if (!res.ok) throw new Error('Failed to post comment');
+
+      setCommentText('');
+      fetchComments();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to post comment');
+    } finally {
+      setCommentLoading(false);
+    }
+  };
 
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -117,6 +170,41 @@ const PollViewCreator = () => {
       }
     }
   };
+
+  const handleDeletePoll = async () => {
+  const confirm = await Swal.fire({
+    title: 'Delete Poll?',
+    text: 'This action is irreversible. All data will be lost.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it',
+    cancelButtonText: 'Cancel',
+  });
+
+  if (confirm.isConfirmed) {
+    try {
+      const res = await apiRequest({
+        url: `https://api.vote.vickz.ru/api/v2/delete-poll/${poll_id}`,
+        method: 'DELETE',
+        auth: true,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to delete poll');
+      }
+
+      Swal.fire('Poll deleted', '', 'success').then(() => {
+        navigate('/home'); // или куда ты хочешь направить пользователя
+      });
+    } catch (err) {
+      Swal.fire('Error', err.message, 'error');
+    }
+  }
+};
+
+
 
   return (
     <div className="main-layout">
@@ -198,6 +286,84 @@ const PollViewCreator = () => {
                 End Poll Early
               </button>
             )}
+            <button
+              className="export-button"
+              style={{ backgroundColor: '#b91c1c' }}
+              onClick={handleDeletePoll}
+            >
+              <FiTrash style={{ marginRight: 6 }} />
+              Delete Poll
+            </button>
+
+          </div>
+        </div>
+
+        {/* Комментарии */}
+        <div className="comments-section">
+          <div className="comment-input">
+            <textarea
+              placeholder="Write a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              rows={3}
+            />
+            <button onClick={handleCommentSubmit} disabled={commentLoading || !commentText.trim()}>
+              {commentLoading ? 'Posting...' : 'Post Comment'}
+            </button>
+          </div>
+          <h2>Comments: {comments.length}</h2>
+          <div className="comments-list">
+{comments.map((comment, i) => {
+  const isMyComment = comment.user_username === localStorage.getItem('username');
+
+  return (
+    <div key={i} className="comment-item">
+      <Link to={`/user/${comment.user_username}`}>
+        <img
+          src={`https://blockchain-pfps.s3.regru.cloud/${comment.user_username}/avatar_${comment.user_id}.png`}
+          alt={comment.user_id}
+          className="comment-avatar"
+        />
+      </Link>
+
+      <div className="comment-body">
+        <div className="comment-header">
+          <Link to={`/user/${comment.user_username}`} className="black-link">
+            <strong>{comment.user_username}</strong>
+          </Link>
+
+          {isMyComment && (
+            <div className="comment-dropdown">
+              <button className="comment-dropdown-toggle">⋮</button>
+              <div className="comment-dropdown-menu">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await apiRequest({
+                        url: `https://api.vote.vickz.ru/api/v2/delete-comment/${comment.id}`,
+                        method: 'DELETE',
+                        auth: true
+                      });
+
+                      if (!res.ok) throw new Error('Failed to delete');
+
+                      fetchComments(); // refresh comment list
+                    } catch (err) {
+                      alert('Ошибка при удалении комментария');
+                    }
+                  }}
+                >
+                  Delete this comment
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <p className="comment-text">{comment.content}</p>
+      </div>
+    </div>
+  );
+})}
           </div>
         </div>
       </div>

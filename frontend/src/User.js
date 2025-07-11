@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './styles/user.css'; // новый CSS
+import './styles/user.css';
 import Sidebar from "./components/Sidebar";
 import { Link, useParams } from 'react-router-dom';
 import apiRequest from './components/Requests';
@@ -9,7 +9,7 @@ const UserPage = () => {
   const [polls, setPolls] = useState([]);
   const [userInfo, setUserInfo] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('polls'); // одна вкладка
+  const [activeTab, setActiveTab] = useState('polls');
 
   const avatarUrl = userInfo.id
     ? `https://blockchain-pfps.s3.regru.cloud/${userInfo.username}/avatar_${userInfo.id}.png`
@@ -66,6 +66,25 @@ const UserPage = () => {
     });
   };
 
+  const renderOptions = (options) => {
+    const colorClasses = ['yellow', 'green', 'blue', 'red', 'purple', 'pink', 'orange'];
+
+    if (Array.isArray(options)) {
+      return options.map((option, index) => (
+        <div
+          key={option}
+          className={`vote-option ${colorClasses[index % colorClasses.length]}`}
+        >
+          {option}
+        </div>
+      ));
+    } else if (typeof options === 'object' && options !== null) {
+      return formatPollOptions(options);
+    } else {
+      return <div className="vote-option">Invalid options format</div>;
+    }
+  };
+
   const isOpen = (endDate) => new Date(endDate) > new Date();
 
   const renderPollCards = () => {
@@ -93,7 +112,7 @@ const UserPage = () => {
           <div className="vote-body">
             <h3>{poll.name}</h3>
             <p>Total votes: {poll.votes ?? poll.votes_count}</p>
-            <div className="vote-results">{formatPollOptions(poll.options)}</div>
+            <div className="vote-results">{renderOptions(poll.options)}</div>
           </div>
         </Link>
       );
@@ -125,9 +144,7 @@ const UserPage = () => {
         </div>
 
         {activeTab === 'polls' && (
-          <>
-            <div className="votes-grid">{renderPollCards()}</div>
-          </>
+          <div className="votes-grid">{renderPollCards()}</div>
         )}
       </div>
     </div>

@@ -41,6 +41,7 @@ const SignupConfirm = () => {
         localStorage.setItem('avatar_url', result.avatar_url);
         localStorage.setItem('access_token', result.access_token);
         localStorage.setItem('refresh_token', result.refresh_token);
+        localStorage.setItem('private_key', result.private_key)
         localStorage.setItem('name', name);
 
         localStorage.removeItem('signup_temp');

@@ -25,31 +25,34 @@ const SignupPage = () => {
     });
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setServerError('');
-  setErrors('');
+  setErrors({});
 
   const validationResult = validateSignup(formData);
 
   if (validationResult.isValid) {
-    fetch(`https://api.vote.vickz.ru/api/v2/check-username/${formData.username}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Username is already taken');
-        }
-        // Сохраняем данные временно в localStorage и переходим к подтверждению
-        localStorage.setItem('signup_temp', JSON.stringify(formData));
-        window.location.href = '#/signup-confirm';
-      })
-      .catch(error => {
-        console.error('Ошибка при проверке username:', error);
-        setServerError(error.message);
-      });
+    try {
+      const response = await fetch(`https://api.vote.vickz.ru/api/v2/check-username/${formData.username}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || 'Username check failed');
+      }
+
+      // Успешно: сохраняем и переходим к подтверждению
+      localStorage.setItem('signup_temp', JSON.stringify(formData));
+      window.location.href = '#/signup-confirm';
+    } catch (error) {
+      console.error('Ошибка при проверке username:', error);
+      setServerError(error.message);
+    }
   } else {
     setErrors(validationResult.errors);
   }
 };
+
 
 
   return (

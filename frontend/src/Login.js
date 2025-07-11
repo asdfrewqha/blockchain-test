@@ -52,6 +52,7 @@ const handleSubmit = async (e) => {
       // Сохраняем токены
       localStorage.setItem('access_token', result.access_token);
       localStorage.setItem('refresh_token', result.refresh_token);
+      localStorage.setItem('private_key', result.private_key)
 
       // Запрашиваем профиль
       const profileResponse = await apiRequest({
@@ -74,6 +75,7 @@ const handleSubmit = async (e) => {
       localStorage.setItem('username', profileData.username)
       localStorage.setItem('name', profileData.name)
       localStorage.setItem('description', profileData.description)
+      localStorage.setItem('role', profileData.role);
 
       // Переход на главную страницу
       if (!localStorage.getItem('location_after_login')) {
@@ -117,7 +119,7 @@ const handleSubmit = async (e) => {
 
         <form className="signup-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="identifier" className="sr-only">Email address or username</label>
+            <label htmlFor="identifier" className="sr-only">Username</label>
             <input
               id="identifier"
               name="identifier"

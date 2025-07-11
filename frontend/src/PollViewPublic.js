@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import apiRequest from './components/Requests';
 import {
@@ -8,6 +8,8 @@ import {
 import './styles/pollviewcreator.css';
 import './styles/pollviewpublic.css';
 import { FiArrowLeft } from 'react-icons/fi';
+import Vote from './components/BlockChain';
+
 
 const PollViewPublic = () => {
   const { poll_id } = useParams();
@@ -19,6 +21,10 @@ const PollViewPublic = () => {
   const [voting, setVoting] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -33,6 +39,9 @@ const PollViewPublic = () => {
         if (!response.ok) throw new Error('Failed to load poll');
 
         const data = await response.json();
+        if (data.user_username === localStorage.getItem('username')){
+          window.location.href = `/#/poll-view-creator/${poll_id}`
+        }
         setPollData(data);
       } catch (err) {
         console.error(err);
@@ -45,11 +54,34 @@ const PollViewPublic = () => {
     fetchPoll();
   }, [poll_id]);
 
+  const fetchComments = async () => {
+    try {
+      const res = await apiRequest({
+        url: `https://api.vote.vickz.ru/api/v2/get-comments/${poll_id}`,
+        method: 'GET',
+        auth: true
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch comments');
+
+      const data = await res.json();
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (pollData) fetchComments();
+  }, [pollData]);
+
   const handleVote = async () => {
     if (!selectedOption) {
       setError('Please select an option');
       return;
     }
+
+    Vote(poll_id, selectedOption)
 
     setVoting(true);
     setError('');
@@ -73,8 +105,32 @@ const PollViewPublic = () => {
       const updated = await response.json();
       setPollData(updated);
     } catch (err) {
-      alert('voted successfullly')
-      window.location.href = '/#/home'
+      alert('Voted successfully');
+      window.location.href = '/#/home';
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    setCommentLoading(true);
+    try {
+      const res = await apiRequest({
+        url: `https://api.vote.vickz.ru/api/v2/add-comment/${poll_id}`,
+        method: 'POST',
+        body: commentText,
+        auth: true
+      });
+
+      if (!res.ok) throw new Error('Failed to post comment');
+
+      setCommentText('');
+      fetchComments();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to post comment');
+    } finally {
+      setCommentLoading(false);
     }
   };
 
@@ -195,7 +251,6 @@ const PollViewPublic = () => {
                 </label>
               </div>
 
-
               <button
                 className="submit-button"
                 onClick={handleVote}
@@ -207,6 +262,101 @@ const PollViewPublic = () => {
               {error && <p className="error-text">{error}</p>}
             </>
           )}
+        </div>
+
+        {/* COMMENTS SECTION */}
+        <div className="comments-section">
+          <div className="comment-input">
+            <textarea
+              placeholder="Write a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              rows={3}
+            />
+            <button onClick={handleCommentSubmit} disabled={commentLoading || !commentText.trim()}>
+              {commentLoading ? 'Posting...' : 'Post Comment'}
+            </button>
+          </div>
+          <h2>Comments: {comments.length}</h2>
+          <div className="comments-list">
+{comments.map((comment, i) => {
+  const isMyComment = comment.user_username === localStorage.getItem('username');
+
+  return (
+    <div key={i} className="comment-item">
+      <Link to={`/user/${comment.user_username}`}>
+        <img
+          src={`https://blockchain-pfps.s3.regru.cloud/${comment.user_username}/avatar_${comment.user_id}.png`}
+          alt={comment.user_id}
+          className="comment-avatar"
+        />
+      </Link>
+
+      <div className="comment-body">
+        <div className="comment-header">
+          <Link to={`/user/${comment.user_username}`} className="black-link">
+            <strong>{comment.user_username}</strong>
+          </Link>
+{comments.map((comment, i) => {
+  const isMyComment = comment.user_username === localStorage.getItem('username');
+
+  return (
+    <div key={i} className="comment-item">
+      <Link to={`/user/${comment.user_username}`}>
+        <img
+          src={`https://blockchain-pfps.s3.regru.cloud/${comment.user_username}/avatar_${comment.user_id}.png`}
+          alt={comment.user_id}
+          className="comment-avatar"
+        />
+      </Link>
+
+      <div className="comment-body">
+        <div className="comment-header">
+          <Link to={`/user/${comment.user_username}`} className="black-link">
+            <strong>{comment.user_username}</strong>
+          </Link>
+
+          {isMyComment && (
+            <div className="comment-dropdown">
+              <button className="comment-dropdown-toggle">⋮</button>
+              <div className="comment-dropdown-menu">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await apiRequest({
+                        url: `https://api.vote.vickz.ru/api/v2/delete-comment/${comment.id}`,
+                        method: 'DELETE',
+                        auth: true
+                      });
+
+                      if (!res.ok) throw new Error('Failed to delete');
+
+                      fetchComments(); // refresh comment list
+                    } catch (err) {
+                      alert('Ошибка при удалении комментария');
+                    }
+                  }}
+                >
+                  Delete this comment
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <p className="comment-text">{comment.content}</p>
+      </div>
+    </div>
+  );
+})}
+
+        </div>
+        <p className="comment-text">{comment.content}</p>
+      </div>
+    </div>
+  );
+})}
+
+          </div>
         </div>
       </div>
     </div>
