@@ -34,8 +34,8 @@ async def shutdown(ctx):
 async def notify_author(ctx, chat_id: int, poll_id: UUID, delay: float):
     await asyncio.sleep(delay)
     poll = await adapter.get_by_id(Poll, poll_id)
-    user = await adapter.get_by_value(User, "telegram_id", chat_id)
-    if not user[0].notifications:
+    user = await adapter.get_by_value(User, "telegram_id", chat_id)[0]
+    if not user.notifications:
         return None
     if poll.is_notified:
         return None
@@ -82,8 +82,8 @@ async def notify_user(ctx, user_id: UUID, poll_id: UUID, delay: float):
     await asyncio.sleep(delay)
     poll = await adapter.get_by_id(Poll, poll_id)
     user = await adapter.get_by_id(User, user_id)
-    vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})
-    if vote[0].is_notified:
+    vote = await adapter.get_by_values(Vote, {"user_id": user.id, "poll_id": poll.id})[0]
+    if vote.is_notified:
         return None
     await bot.send_message(
         chat_id=user.telegram_id,
@@ -91,7 +91,7 @@ async def notify_user(ctx, user_id: UUID, poll_id: UUID, delay: float):
         "Результаты можно посмотреть по ссылке:\n"
         f"{FRONTEND_URL}/#/poll/{str(poll_id)}",
     )
-    await adapter.update_by_id(Vote, vote[0].id, {"is_notified": True})
+    await adapter.update_by_id(Vote, vote.id, {"is_notified": True})
     return None
 
 
