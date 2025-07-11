@@ -44,9 +44,9 @@ services:
     image: asdfrewqha/blockchain:latest
     container_name: fastapi-container
     env_file:
-      - /root/fastapi/config/.env
+      - /root/fastapi/.env
     volumes:
-      - /root/fastapi/config/.env:/config/.env:ro
+      - /root/fastapi/.env:/config/.env:ro
     depends_on:
       postgres:
         condition: service_healthy
